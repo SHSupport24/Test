@@ -1,25 +1,49 @@
-const PROXY_BASE = 'https://tracking-proxy-server.onrender.com'; // DEINE URL hier einsetzen
+const PROXY_BASE = 'https://tracking-proxy.onrender.com'; // Deine echte Proxy-URL eintragen
+const API_KEY = 'xlogsga5-8jha-ch20-l4re-nqd4k9fphxxh';
 
-// Trackingnummer aus Beschreibung holen
+// 📦 Trackingnummer aus Beschreibung extrahieren
 function extractTrackingNumber(description) {
   const match = description.match(/\b\d{8,}\b/);
   return match ? match[0] : null;
 }
 
-// Trackingstatus über Proxy-Server abfragen
-function fetchTrackingStatus(trackingNumber) {
-  const url = `${PROXY_BASE}/track?tnr=${trackingNumber}&carrier=dhl`;
-
-  return fetch(url)
-    .then(res => res.json())
-    .then(data => data.status || 'Unbekannt')
-    .catch(err => {
-      console.error('Proxy Fehler:', err);
-      return 'Fehler';
+// 🔍 Automatisch den Carrier erkennen
+async function detectCarrier(trackingNumber) {
+  try {
+    const res = await fetch('https://api.trackingmore.com/v4/carriers/detect', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Tracking-Api-Key': API_KEY
+      },
+      body: JSON.stringify({ tracking_number: trackingNumber })
     });
+
+    const data = await res.json();
+    const carrier = data.data?.[0]?.code;
+    return carrier || null;
+  } catch (err) {
+    console.error('Carrier-Erkennung fehlgeschlagen:', err);
+    return null;
+  }
 }
 
-// Buttonfunktion: Status anzeigen
+// 🚚 Status über Proxy-Server abfragen
+async function fetchTrackingStatus(trackingNumber) {
+  const carrier = await detectCarrier(trackingNumber);
+  if (!carrier) return 'Unbekannter Carrier';
+
+  try {
+    const res = await fetch(`${PROXY_BASE}/track?tnr=${trackingNumber}&carrier=${carrier}`);
+    const data = await res.json();
+    return data.status || 'Unbekannt';
+  } catch (err) {
+    console.error('Proxy Fehler:', err);
+    return 'Fehler';
+  }
+}
+
+// ⚡ Buttonfunktion: Alert anzeigen
 async function showTrackingStatus(t) {
   const desc = await t.card('desc').get('desc');
   const trackingNumber = extractTrackingNumber(desc);
@@ -34,7 +58,7 @@ async function showTrackingStatus(t) {
   });
 }
 
-// Trello Power-Up Initialisierung
+// 🛠️ Power-Up Initialisierung
 window.TrelloPowerUp.initialize({
   'card-buttons': function(t, options) {
     return [{
