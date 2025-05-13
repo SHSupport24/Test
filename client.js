@@ -7,21 +7,22 @@ function extractTrackingNumber(description) {
   return match ? match[0] : null;
 }
 
-// Trackingdaten abrufen über korrekten Endpoint
+// Trackingdaten abrufen – über POST /trackings/post (legt an & holt Status)
 function fetchTrackingStatus(trackingNumber) {
-  return fetch(`${API_BASE}/trackings/batch`, {
+  return fetch(`${API_BASE}/trackings/post`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Tracking-Api-Key': API_KEY
     },
     body: JSON.stringify({
-      numbers: [trackingNumber]  // korrektes Feld laut TrackingMore-Doku
+      tracking_number: trackingNumber,
+      carrier_code: 'dhl' // später dynamisch erkennbar
     })
   })
   .then(res => res.json())
   .then(data => {
-    const info = data.data?.[0];
+    const info = data.data;
     return info?.tag || 'Unbekannt';
   })
   .catch(err => {
@@ -52,7 +53,7 @@ window.TrelloPowerUp.initialize({
       icon: 'https://test-iota-self-48.vercel.app/icon.png',
       text: 'Paketstatus',
       callback: function(t) {
-        return showTrackingStatus(t); // direkte Funktionsreferenz
+        return showTrackingStatus(t);
       }
     }];
   },
