@@ -1,5 +1,4 @@
-const API_KEY = 'xlogsga5-8jha-ch20-l4re-nqd4k9fphxxh';
-const API_BASE = 'https://api.trackingmore.com/v4';
+const PROXY_BASE = 'https://tracking-proxy-server.onrender.com'; // DEINE URL hier einsetzen
 
 // Trackingnummer aus Beschreibung holen
 function extractTrackingNumber(description) {
@@ -7,31 +6,20 @@ function extractTrackingNumber(description) {
   return match ? match[0] : null;
 }
 
-// Trackingdaten abrufen – korrekt über POST /trackings
+// Trackingstatus über Proxy-Server abfragen
 function fetchTrackingStatus(trackingNumber) {
-  return fetch(`${API_BASE}/trackings`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Tracking-Api-Key': API_KEY
-    },
-    body: JSON.stringify({
-      tracking_number: trackingNumber,
-      carrier_code: 'dhl'
-    })
-  })
-  .then(res => res.json())
-  .then(data => {
-    const info = data.data;
-    return info?.tag || 'Unbekannt';
-  })
-  .catch(err => {
-    console.error('API Fehler:', err);
-    return 'Fehler';
-  });
+  const url = `${PROXY_BASE}/track?tnr=${trackingNumber}&carrier=dhl`;
+
+  return fetch(url)
+    .then(res => res.json())
+    .then(data => data.status || 'Unbekannt')
+    .catch(err => {
+      console.error('Proxy Fehler:', err);
+      return 'Fehler';
+    });
 }
 
-// Buttonfunktion
+// Buttonfunktion: Status anzeigen
 async function showTrackingStatus(t) {
   const desc = await t.card('desc').get('desc');
   const trackingNumber = extractTrackingNumber(desc);
@@ -46,7 +34,7 @@ async function showTrackingStatus(t) {
   });
 }
 
-// Power-Up Initialisierung
+// Trello Power-Up Initialisierung
 window.TrelloPowerUp.initialize({
   'card-buttons': function(t, options) {
     return [{
