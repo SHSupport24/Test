@@ -1,13 +1,13 @@
-const t = TrelloPowerUp.iframe();
-
 const API_KEY = 'xlogsga5-8jha-ch20-l4re-nqd4k9fphxxh';
 const API_BASE = 'https://api.trackingmore.com/v4';
 
+// Extrahiert Trackingnummer aus der Kartenbeschreibung
 function extractTrackingNumber(description) {
-  const match = description.match(/(?:\b\d{8,}\b)/);
+  const match = description.match(/\b\d{8,}\b/); // einfache Zahlenerkennung
   return match ? match[0] : null;
 }
 
+// Holt Trackingstatus von TrackingMore
 function fetchTrackingStatus(trackingNumber) {
   return fetch(`${API_BASE}/trackings/get`, {
     method: 'POST',
@@ -24,9 +24,13 @@ function fetchTrackingStatus(trackingNumber) {
     const info = data.data?.items?.[0];
     return info ? info.tag : 'Unbekannt';
   })
-  .catch(() => 'Fehler');
+  .catch(err => {
+    console.error('API Fehler:', err);
+    return 'Fehler';
+  });
 }
 
+// Power-Up Registrierung
 window.TrelloPowerUp.initialize({
   'card-buttons': function (t, options) {
     return [{
@@ -41,11 +45,8 @@ window.TrelloPowerUp.initialize({
         }
 
         const status = await fetchTrackingStatus(trackingNumber);
-        return t.modal({
-          title: 'Paketstatus',
-          url: './status.html',
-          args: { status, trackingNumber },
-          fullscreen: false
+        return t.alert({
+          message: `Status für ${trackingNumber}: ${status}`
         });
       }
     }];

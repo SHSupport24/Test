@@ -28,6 +28,6 @@
       ]
     },
     "connectors": {},
-    "iframeConnectorUrl": "https://paketverfolgung-wo88.vercel.app/",
+    "iframeConnectorUrl": "https://paketverfolgung-test.vercel.app/",
     "id": "trello-tracking-powerup"
   }
