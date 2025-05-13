@@ -1,19 +1,19 @@
 const API_KEY = 'xlogsga5-8jha-ch20-l4re-nqd4k9fphxxh';
 const API_BASE = 'https://api.trackingmore.com/v4';
 
-// Extrahiert Trackingnummer aus der Kartenbeschreibung
+// Extrahiert Trackingnummer aus Beschreibung
 function extractTrackingNumber(description) {
-  const match = description.match(/\b\d{8,}\b/); // einfache Zahlenerkennung
+  const match = description.match(/\b\d{8,}\b/);
   return match ? match[0] : null;
 }
 
-// Holt Trackingstatus von TrackingMore
+// Holt Paketstatus von TrackingMore
 function fetchTrackingStatus(trackingNumber) {
   return fetch(`${API_BASE}/trackings/get`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Tracking-Api-Key': API_KEY,
+      'Tracking-Api-Key': API_KEY
     },
     body: JSON.stringify({
       tracking_numbers: [trackingNumber]
@@ -30,28 +30,16 @@ function fetchTrackingStatus(trackingNumber) {
   });
 }
 
-// Power-Up Registrierung
+// Haupt-Initialisierung
 window.TrelloPowerUp.initialize({
-  'card-buttons': function (t, options) {
+  'card-buttons': function(t, options) {
     return [{
-      icon: 'https://paketverfolgung-wo88.vercel.app/icon.png',
+      icon: 'https://test-iota-self-48.vercel.app/icon.png',
       text: 'Paketstatus',
-      callback: async function(t) {
-        const desc = await t.card('desc').get('desc');
-        const trackingNumber = extractTrackingNumber(desc);
-
-        if (!trackingNumber) {
-          return t.alert({ message: 'Keine Trackingnummer gefunden.' });
-        }
-
-        const status = await fetchTrackingStatus(trackingNumber);
-        return t.alert({
-          message: `Status für ${trackingNumber}: ${status}`
-        });
-      }
+      callback: 'showTrackingStatus'
     }];
   },
-  'card-badges': function (t, options) {
+  'card-badges': function(t, options) {
     return t.card('desc')
       .get('desc')
       .then(async desc => {
@@ -66,3 +54,18 @@ window.TrelloPowerUp.initialize({
       });
   }
 });
+
+// Separate Callback-Funktion – von manifest.json referenziert
+window.showTrackingStatus = async function(t) {
+  const desc = await t.card('desc').get('desc');
+  const trackingNumber = extractTrackingNumber(desc);
+
+  if (!trackingNumber) {
+    return t.alert({ message: 'Keine Trackingnummer gefunden.' });
+  }
+
+  const status = await fetchTrackingStatus(trackingNumber);
+  return t.alert({
+    message: `Status für ${trackingNumber}: ${status}`
+  });
+};

@@ -1,19 +1,7 @@
 {
     "name": "Paketstatus Tracker",
-    "display": {
-      "caption": "Paketstatus anzeigen"
-    },
-    "description": "Zeigt den Paketstatus basierend auf Trackingnummern in der Kartenbeschreibung.",
-    "author": "Dein Name",
-    "icon": {
-      "url": "https://paketverfolgung-wo88.vercel.app/icon.png",
-      "url2x": "https://paketverfolgung-wo88.vercel.app/icon@2x.png"
-    },
-    "permissions": {
-      "api": "read",
-      "card-buttons": true,
-      "card-badges": true
-    },
+    "description": "Zeigt Paketstatus direkt in Trello-Karten an.",
+    "author": "Janine",
     "capabilities": {
       "card-buttons": [
         {
@@ -27,7 +15,15 @@
         }
       ]
     },
-    "connectors": {},
-    "iframeConnectorUrl": "https://paketverfolgung-test.vercel.app/",
+    "permissions": {
+      "api": "read",
+      "card-buttons": true,
+      "card-badges": true
+    },
+    "icon": {
+      "url": "https://test-iota-self-48.vercel.app/icon.png",
+      "url2x": "https://test-iota-self-48.vercel.app/icon@2x.png"
+    },
+    "iframeConnectorUrl": "https://test-iota-self-48.vercel.app/",
     "id": "trello-tracking-powerup"
   }
