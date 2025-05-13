@@ -1,6 +1,6 @@
 {
     "name": "Paketstatus Tracker",
-    "description": "Zeigt Paketstatus direkt in Trello-Karten an.",
+    "description": "Zeigt den Paketstatus direkt auf Trello-Karten basierend auf Trackingnummern in der Beschreibung.",
     "author": "Janine",
     "capabilities": {
       "card-buttons": [

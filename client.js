@@ -7,9 +7,9 @@ function extractTrackingNumber(description) {
   return match ? match[0] : null;
 }
 
-// Trackingdaten abrufen – über POST /trackings/post (legt an & holt Status)
+// Trackingdaten abrufen – korrekt über POST /trackings
 function fetchTrackingStatus(trackingNumber) {
-  return fetch(`${API_BASE}/trackings/post`, {
+  return fetch(`${API_BASE}/trackings`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -17,7 +17,7 @@ function fetchTrackingStatus(trackingNumber) {
     },
     body: JSON.stringify({
       tracking_number: trackingNumber,
-      carrier_code: 'dhl' // später dynamisch erkennbar
+      carrier_code: 'dhl'
     })
   })
   .then(res => res.json())
@@ -31,7 +31,7 @@ function fetchTrackingStatus(trackingNumber) {
   });
 }
 
-// Hauptfunktion für Button-Aktion
+// Buttonfunktion
 async function showTrackingStatus(t) {
   const desc = await t.card('desc').get('desc');
   const trackingNumber = extractTrackingNumber(desc);
@@ -46,7 +46,7 @@ async function showTrackingStatus(t) {
   });
 }
 
-// Trello Power-Up initialisieren
+// Power-Up Initialisierung
 window.TrelloPowerUp.initialize({
   'card-buttons': function(t, options) {
     return [{
