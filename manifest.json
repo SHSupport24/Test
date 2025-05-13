@@ -6,7 +6,7 @@
       "card-buttons": [
         {
           "text": "Paketstatus",
-          "callback": "showTrackingStatus"
+          "callback": "cardButtonCallback"
         }
       ],
       "card-badges": [
