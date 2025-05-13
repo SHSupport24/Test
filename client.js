@@ -7,22 +7,22 @@ function extractTrackingNumber(description) {
   return match ? match[0] : null;
 }
 
-// Trackingdaten abrufen
+// Trackingdaten abrufen über korrekten Endpoint
 function fetchTrackingStatus(trackingNumber) {
-  return fetch(`${API_BASE}/trackings/get`, {
+  return fetch(`${API_BASE}/trackings/batch`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Tracking-Api-Key': API_KEY
     },
     body: JSON.stringify({
-      tracking_numbers: [trackingNumber]
+      numbers: [trackingNumber]  // korrektes Feld laut TrackingMore-Doku
     })
   })
   .then(res => res.json())
   .then(data => {
-    const info = data.data?.items?.[0];
-    return info ? info.tag : 'Unbekannt';
+    const info = data.data?.[0];
+    return info?.tag || 'Unbekannt';
   })
   .catch(err => {
     console.error('API Fehler:', err);
