@@ -1,5 +1,4 @@
-const PROXY_BASE = 'https://tracking-proxy.onrender.com'; // Deine echte Proxy-URL eintragen
-const API_KEY = 'xlogsga5-8jha-ch20-l4re-nqd4k9fphxxh';
+const PROXY_BASE = 'https://tracking-proxy.onrender.com'; // Deine echte Proxy-URL
 
 // 📦 Trackingnummer aus Beschreibung extrahieren
 function extractTrackingNumber(description) {
@@ -7,21 +6,12 @@ function extractTrackingNumber(description) {
   return match ? match[0] : null;
 }
 
-// 🔍 Automatisch den Carrier erkennen
+// 🔍 Carrier automatisch über Proxy erkennen
 async function detectCarrier(trackingNumber) {
   try {
-    const res = await fetch('https://api.trackingmore.com/v4/carriers/detect', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Tracking-Api-Key': API_KEY
-      },
-      body: JSON.stringify({ tracking_number: trackingNumber })
-    });
-
+    const res = await fetch(`${PROXY_BASE}/detect?tnr=${trackingNumber}`);
     const data = await res.json();
-    const carrier = data.data?.[0]?.code;
-    return carrier || null;
+    return data.carrier || null;
   } catch (err) {
     console.error('Carrier-Erkennung fehlgeschlagen:', err);
     return null;
@@ -58,7 +48,7 @@ async function showTrackingStatus(t) {
   });
 }
 
-// 🛠️ Power-Up Initialisierung
+// 🛠️ Trello Power-Up Initialisierung
 window.TrelloPowerUp.initialize({
   'card-buttons': function(t, options) {
     return [{
