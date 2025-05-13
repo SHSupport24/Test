@@ -1,4 +1,4 @@
-const PROXY_BASE = 'https://tracking-proxy.onrender.com'; // Deine echte Proxy-URL
+const PROXY_BASE = 'https://tracking-proxy-server.onrender.com'; // Deine echte Proxy-URL
 
 // 📦 Trackingnummer aus Beschreibung extrahieren
 function extractTrackingNumber(description) {
