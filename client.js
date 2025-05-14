@@ -1,5 +1,5 @@
 const PROXY_BASE = 'https://tracking-proxy-server.onrender.com'; // Deine Proxy-URL
-const CARRIER_CODE = 'dhl-germany'; // Richtiger Carrier-Code für DHL Germany
+const CARRIER_CODE = 'dhl'; // AfterShip verwendet 'dhl' für DHL Germany
 
 // 📦 Trackingnummer extrahieren
 function extractTrackingNumber(description) {
@@ -14,7 +14,7 @@ async function fetchTrackingStatus(trackingNumber) {
     const data = await res.json();
     return data.status || 'Unbekannt';
   } catch (err) {
-    console.error('DHL-Statusabruf fehlgeschlagen:', err);
+    console.error('AfterShip-Statusabruf fehlgeschlagen:', err);
     return 'Fehler';
   }
 }
@@ -36,7 +36,7 @@ async function showTrackingStatus(t) {
 
 // 🛠️ Trello Power-Up Setup
 window.TrelloPowerUp.initialize({
-  'card-buttons': function(t, options) {
+  'card-buttons': function(t) {
     return [{
       icon: 'https://test-iota-self-48.vercel.app/icon.png',
       text: 'DHL-Status',
@@ -46,7 +46,7 @@ window.TrelloPowerUp.initialize({
     }];
   },
 
-  'card-badges': function(t, options) {
+  'card-badges': function(t) {
     return t.card('desc')
       .get('desc')
       .then(async desc => {
