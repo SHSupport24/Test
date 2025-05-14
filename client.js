@@ -1,5 +1,5 @@
 const PROXY_BASE = 'https://tracking-proxy-server.onrender.com'; // Deine Proxy-URL
-const CARRIER_CODE = 'dhl'; // Festgelegt für DHL Germany
+const CARRIER_CODE = 'dhl-germany'; // Richtiger Carrier-Code für DHL Germany
 
 // 📦 Trackingnummer extrahieren
 function extractTrackingNumber(description) {
