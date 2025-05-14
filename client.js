@@ -6,27 +6,39 @@ function extractTrackingNumber(description) {
   return match ? match[0] : null;
 }
 
-async function fetchTrackingStatus(trackingNumber) {
-  try {
-    const res = await fetch(`${PROXY_BASE}/track?tnr=${trackingNumber}&carrier=${CARRIER_CODE}`);
-    const data = await res.json();
-    return data.status || 'Unbekannt';
-  } catch (err) {
-    console.error('AfterShip-Statusabruf fehlgeschlagen:', err);
-    return 'Fehler';
+async function fetchTrackingStatus(trackingNumber, maxRetries = 3, delay = 4000) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const res = await fetch(`${PROXY_BASE}/track?tnr=${trackingNumber}&carrier=${CARRIER_CODE}`);
+      const data = await res.json();
+      if (data.status && data.status !== 'Unbekannt') {
+        return data.status;
+      }
+    } catch (err) {
+      console.error(`Versuch ${i + 1} fehlgeschlagen:`, err);
+    }
+    await new Promise(res => setTimeout(res, delay));
   }
+  return 'Unbekannt';
 }
 
 async function showTrackingStatus(t) {
   const desc = await t.card('desc').get('desc');
   const trackingNumber = extractTrackingNumber(desc);
   if (!trackingNumber) {
-    return t.alert({ message: 'Keine Trackingnummer gefunden.' });
+    return t.alert({ message: '❌ Keine Trackingnummer gefunden.' });
   }
 
-  const status = await fetchTrackingStatus(trackingNumber);
-  await t.set('shared', 'status', status); // Status speichern für Badge
-  return t.alert({ message: `📦 DHL-Status für ${trackingNumber}: ${status}` });
+  // Sofort Feedback geben
+  t.alert({ message: '⏳ Lade Trackingstatus (Hintergrund)...' });
+
+  // Asynchron abrufen und speichern
+  fetchTrackingStatus(trackingNumber).then(async status => {
+    await t.set('shared', 'status', status);
+    t.alert({ message: `📦 DHL-Status: ${status}` });
+  });
+
+  return; // Sofort antworten (Timeout-Schutz)
 }
 
 async function openDebugModal(t) {
