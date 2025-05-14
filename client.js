@@ -25,6 +25,7 @@ async function showTrackingStatus(t) {
   }
 
   const status = await fetchTrackingStatus(trackingNumber);
+  await t.set('shared', 'status', status); // Status speichern für Badge
   return t.alert({ message: `📦 DHL-Status für ${trackingNumber}: ${status}` });
 }
 
@@ -58,17 +59,14 @@ window.TrelloPowerUp.initialize({
     ];
   },
   'card-badges': function(t) {
-    return t.card('desc')
-      .get('desc')
-      .then(async desc => {
-        const trackingNumber = extractTrackingNumber(desc);
-        if (!trackingNumber) return [];
-
-        const status = await fetchTrackingStatus(trackingNumber);
-        return [{
-          text: `📦 ${status}`,
-          color: status === 'Delivered' ? 'green' : 'yellow'
-        }];
-      });
+    return t.get('shared', 'status').then(status => {
+      if (!status) {
+        return [{ text: '⏳ lädt...', color: 'grey' }];
+      }
+      return [{
+        text: `📦 ${status}`,
+        color: status === 'Delivered' ? 'green' : 'yellow'
+      }];
+    });
   }
 });
