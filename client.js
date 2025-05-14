@@ -1,5 +1,4 @@
 const PROXY_BASE = 'https://tracking-proxy-server.onrender.com';
-const CARRIER_CODE = 'dhl';
 
 function extractTrackingNumber(description) {
   const match = description.match(/\b\d{8,}\b/);
@@ -9,7 +8,7 @@ function extractTrackingNumber(description) {
 async function fetchTrackingStatus(trackingNumber, maxRetries = 3, delay = 4000) {
   for (let i = 0; i < maxRetries; i++) {
     try {
-      const res = await fetch(`${PROXY_BASE}/track?tnr=${trackingNumber}&carrier=${CARRIER_CODE}`);
+      const res = await fetch(`${PROXY_BASE}/track?tnr=${trackingNumber}`);
       const data = await res.json();
       if (data.status && data.status !== 'Unbekannt') {
         return data.status;
@@ -32,7 +31,7 @@ async function showTrackingStatus(t) {
   // Zeige sofort Feedback und hole Daten im Hintergrund
   t.popup({
     title: 'Status wird geladen...',
-    url: `https://test-iota-self-48.vercel.app/debug.html?tnr=${trackingNumber}&carrier=${CARRIER_CODE}`
+    url: `https://test-iota-self-48.vercel.app/debug.html?tnr=${trackingNumber}`
   });
 
   fetchTrackingStatus(trackingNumber).then(async status => {
@@ -50,7 +49,7 @@ async function openDebugModal(t) {
   }
 
   return t.modal({
-    url: `https://test-iota-self-48.vercel.app/debug.html?tnr=${trackingNumber}&carrier=${CARRIER_CODE}`,
+    url: `https://test-iota-self-48.vercel.app/debug.html?tnr=${trackingNumber}`,
     fullscreen: false,
     title: '📄 Debugdaten anzeigen',
   });
