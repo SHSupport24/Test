@@ -1,39 +1,25 @@
-const PROXY_BASE = 'https://tracking-proxy-server.onrender.com'; // Deine echte Proxy-URL
+const PROXY_BASE = 'https://tracking-proxy-server.onrender.com'; // Deine Proxy-URL
+const CARRIER_CODE = 'dhl'; // Festgelegt für DHL Germany
 
-// 📦 Trackingnummer aus Beschreibung extrahieren
+// 📦 Trackingnummer extrahieren
 function extractTrackingNumber(description) {
   const match = description.match(/\b\d{8,}\b/);
   return match ? match[0] : null;
 }
 
-// 🔍 Carrier automatisch über Proxy erkennen
-async function detectCarrier(trackingNumber) {
-  try {
-    const res = await fetch(`${PROXY_BASE}/detect?tnr=${trackingNumber}`);
-    const data = await res.json();
-    return data.carrier || null;
-  } catch (err) {
-    console.error('Carrier-Erkennung fehlgeschlagen:', err);
-    return null;
-  }
-}
-
-// 🚚 Status über Proxy-Server abfragen
+// 🚚 Trackingstatus von DHL holen
 async function fetchTrackingStatus(trackingNumber) {
-  const carrier = await detectCarrier(trackingNumber);
-  if (!carrier) return 'Unbekannter Carrier';
-
   try {
-    const res = await fetch(`${PROXY_BASE}/track?tnr=${trackingNumber}&carrier=${carrier}`);
+    const res = await fetch(`${PROXY_BASE}/track?tnr=${trackingNumber}&carrier=${CARRIER_CODE}`);
     const data = await res.json();
     return data.status || 'Unbekannt';
   } catch (err) {
-    console.error('Proxy Fehler:', err);
+    console.error('DHL-Statusabruf fehlgeschlagen:', err);
     return 'Fehler';
   }
 }
 
-// ⚡ Buttonfunktion: Alert anzeigen
+// ⚡ Zeige Status beim Buttonklick
 async function showTrackingStatus(t) {
   const desc = await t.card('desc').get('desc');
   const trackingNumber = extractTrackingNumber(desc);
@@ -44,16 +30,16 @@ async function showTrackingStatus(t) {
 
   const status = await fetchTrackingStatus(trackingNumber);
   return t.alert({
-    message: `Status für ${trackingNumber}: ${status}`
+    message: `📦 DHL-Status für ${trackingNumber}: ${status}`
   });
 }
 
-// 🛠️ Trello Power-Up Initialisierung
+// 🛠️ Trello Power-Up Setup
 window.TrelloPowerUp.initialize({
   'card-buttons': function(t, options) {
     return [{
       icon: 'https://test-iota-self-48.vercel.app/icon.png',
-      text: 'Paketstatus',
+      text: 'DHL-Status',
       callback: function(t) {
         return showTrackingStatus(t);
       }
