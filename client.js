@@ -7,6 +7,7 @@ function extractTrackingNumber(description) {
   return match ? match[0] : null;
 }
 
+// 🧩 Wird von Badges und Buttons genutzt
 async function fetchTrackingStatus(trackingNumber) {
   try {
     const res = await fetch(`${PROXY_BASE}/track?tnr=${trackingNumber}&carrier=${CARRIER_CODE}`);
