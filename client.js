@@ -1,76 +1,97 @@
-// === client.js ===
-const PROXY_BASE = 'https://tracking-proxy-server.onrender.com';
-const CARRIER_CODE = 'dhl';
+const PROXY_BASE = 'http://localhost:3000/track';
+const CARRIER_CODE = 'dpd';
 
-function extractTrackingNumber(description) {
-  const match = description.match(/\b\d{8,}\b/);
+function extractTrackingNumber(card) {
+  const regex = /\b\d{10,20}\b/;
+  const match = card.name.match(regex);
   return match ? match[0] : null;
 }
 
-// 🧩 Wird von Badges und Buttons genutzt
-async function fetchTrackingStatus(trackingNumber) {
+async function fetchTrackingStatus(tnr) {
+  const url = `${PROXY_BASE}?tnr=${tnr}&carrier=${CARRIER_CODE}`;
   try {
-    const res = await fetch(`${PROXY_BASE}/track?tnr=${trackingNumber}&carrier=${CARRIER_CODE}`);
-    const data = await res.json();
-    return data.status || 'Unbekannt';
+    const response = await fetch(url);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Unbekannter Fehler beim Abrufen des Trackingstatus.');
+    }
+    const data = await response.json();
+    return data.status;
   } catch (err) {
-    console.error('AfterShip-Statusabruf fehlgeschlagen:', err);
-    return 'Fehler';
+    console.error('Fetch-Fehler:', err);
+    throw err;
   }
 }
 
-async function showTrackingStatus(t) {
-  const desc = await t.card('desc').get('desc');
-  const trackingNumber = extractTrackingNumber(desc);
-  if (!trackingNumber) {
-    return t.alert({ message: 'Keine Trackingnummer gefunden.' });
-  }
-
-  const status = await fetchTrackingStatus(trackingNumber);
-  return t.alert({ message: `📦 DHL-Status für ${trackingNumber}: ${status}` });
-}
-
-async function openDebugModal(t) {
-  const desc = await t.card('desc').get('desc');
-  const trackingNumber = extractTrackingNumber(desc);
-  if (!trackingNumber) {
-    return t.alert({ message: 'Keine Trackingnummer gefunden.' });
-  }
-
-  return t.modal({
-    url: `https://test-iota-self-48.vercel.app/debug.html?tnr=${trackingNumber}&carrier=${CARRIER_CODE}`,
-    fullscreen: false,
-    title: '📄 Debugdaten anzeigen',
+function showTrackingStatus(tnr, status, t) {
+  t.popup({
+    title: `Tracking-Status für ${tnr}`,
+    url: 'tracking-status.html',
+    height: 150,
+    args: { status }
   });
 }
 
-window.TrelloPowerUp.initialize({
-  'card-buttons': function(t) {
-    return [
-      {
-        icon: 'https://cdn-icons-png.flaticon.com/512/3523/3523885.png',
-        text: 'DHL-Status',
-        callback: showTrackingStatus
-      },
-      {
-        icon: 'https://cdn-icons-png.flaticon.com/512/3524/3524659.png',
-        text: '📄 Debug',
-        callback: openDebugModal
-      }
-    ];
-  },
-  'card-badges': function(t) {
-    return t.card('desc')
-      .get('desc')
-      .then(async desc => {
-        const trackingNumber = extractTrackingNumber(desc);
-        if (!trackingNumber) return [];
+function openDebugModal(t) {
+  t.popup({
+    title: 'Debug-Informationen',
+    url: 'debug.html',
+    height: 200,
+    args: {}
+  });
+}
 
-        const status = await fetchTrackingStatus(trackingNumber);
-        return [{
-          text: `📦 ${status}`,
-          color: 'blue'
-        }];
+TrelloPowerUp.initialize({
+  'card-badges': function (t, options) {
+    return t.card('name')
+      .then(function (card) {
+        const tnr = extractTrackingNumber(card);
+        if (!tnr) {
+          return [];
+        }
+        return fetchTrackingStatus(tnr)
+          .then(function (status) {
+            return [{
+              text: status,
+              color: status === 'Delivered' ? 'green' : 'yellow',
+              refresh: 10
+            }];
+          })
+          .catch(function () {
+            return [{
+              text: 'Fehler',
+              color: 'red',
+              refresh: 10
+            }];
+          });
       });
+  },
+  'card-buttons': function (t, options) {
+    return [{
+      icon: 'https://cdn-icons-png.flaticon.com/512/1250/1250683.png',
+      text: 'Tracking-Status anzeigen',
+      callback: function (t) {
+        return t.card('name')
+          .then(function (card) {
+            const tnr = extractTrackingNumber(card);
+            if (!tnr) {
+              return t.alert({ message: 'Keine gültige Trackingnummer gefunden.' });
+            }
+            return fetchTrackingStatus(tnr)
+              .then(function (status) {
+                showTrackingStatus(tnr, status, t);
+              })
+              .catch(function (err) {
+                t.alert({ message: 'Fehler beim Abrufen des Trackingstatus.' });
+              });
+          });
+      }
+    }, {
+      icon: 'https://cdn-icons-png.flaticon.com/512/1828/1828843.png',
+      text: 'Debug',
+      callback: function (t) {
+        openDebugModal(t);
+      }
+    }];
   }
 });
