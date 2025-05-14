@@ -1,13 +1,12 @@
-const PROXY_BASE = 'https://tracking-proxy-server.onrender.com'; // Deine Proxy-URL
-const CARRIER_CODE = 'dhl'; // AfterShip verwendet 'dhl' für DHL Germany
+// === client.js ===
+const PROXY_BASE = 'https://tracking-proxy-server.onrender.com';
+const CARRIER_CODE = 'dhl';
 
-// 📦 Trackingnummer extrahieren
 function extractTrackingNumber(description) {
   const match = description.match(/\b\d{8,}\b/);
   return match ? match[0] : null;
 }
 
-// 🚚 Trackingstatus von DHL holen
 async function fetchTrackingStatus(trackingNumber) {
   try {
     const res = await fetch(`${PROXY_BASE}/track?tnr=${trackingNumber}&carrier=${CARRIER_CODE}`);
@@ -19,33 +18,46 @@ async function fetchTrackingStatus(trackingNumber) {
   }
 }
 
-// ⚡ Zeige Status beim Buttonklick
 async function showTrackingStatus(t) {
   const desc = await t.card('desc').get('desc');
   const trackingNumber = extractTrackingNumber(desc);
-
   if (!trackingNumber) {
     return t.alert({ message: 'Keine Trackingnummer gefunden.' });
   }
 
   const status = await fetchTrackingStatus(trackingNumber);
-  return t.alert({
-    message: `📦 DHL-Status für ${trackingNumber}: ${status}`
+  return t.alert({ message: `📦 DHL-Status für ${trackingNumber}: ${status}` });
+}
+
+async function openDebugModal(t) {
+  const desc = await t.card('desc').get('desc');
+  const trackingNumber = extractTrackingNumber(desc);
+  if (!trackingNumber) {
+    return t.alert({ message: 'Keine Trackingnummer gefunden.' });
+  }
+
+  return t.modal({
+    url: `https://test-iota-self-48.vercel.app/debug.html?tnr=${trackingNumber}&carrier=${CARRIER_CODE}`,
+    fullscreen: false,
+    title: '📄 Debugdaten anzeigen',
   });
 }
 
-// 🛠️ Trello Power-Up Setup
 window.TrelloPowerUp.initialize({
   'card-buttons': function(t) {
-    return [{
-      icon: 'https://test-iota-self-48.vercel.app/icon.png',
-      text: 'DHL-Status',
-      callback: function(t) {
-        return showTrackingStatus(t);
+    return [
+      {
+        icon: 'https://cdn-icons-png.flaticon.com/512/3523/3523885.png',
+        text: 'DHL-Status',
+        callback: showTrackingStatus
+      },
+      {
+        icon: 'https://cdn-icons-png.flaticon.com/512/3524/3524659.png',
+        text: '📄 Debug',
+        callback: openDebugModal
       }
-    }];
+    ];
   },
-
   'card-badges': function(t) {
     return t.card('desc')
       .get('desc')
