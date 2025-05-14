@@ -29,16 +29,17 @@ async function showTrackingStatus(t) {
     return t.alert({ message: '❌ Keine Trackingnummer gefunden.' });
   }
 
-  // Sofort Feedback geben
-  t.alert({ message: '⏳ Lade Trackingstatus (Hintergrund)...' });
-
-  // Asynchron abrufen und speichern
-  fetchTrackingStatus(trackingNumber).then(async status => {
-    await t.set('shared', 'status', status);
-    t.alert({ message: `📦 DHL-Status: ${status}` });
+  // Zeige sofort Feedback und hole Daten im Hintergrund
+  t.popup({
+    title: 'Status wird geladen...',
+    url: `https://test-iota-self-48.vercel.app/debug.html?tnr=${trackingNumber}&carrier=${CARRIER_CODE}`
   });
 
-  return; // Sofort antworten (Timeout-Schutz)
+  fetchTrackingStatus(trackingNumber).then(async status => {
+    await t.set('shared', 'status', status);
+  });
+
+  return;
 }
 
 async function openDebugModal(t) {
